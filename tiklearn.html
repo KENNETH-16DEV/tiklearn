@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikLearn</title>
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --secondary: #ff6584;
+      --dark: #202020;
+      --light: #f9f9f9;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--light);
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+    header div { display: flex; align-items: center; gap: 8px; }
+    header input {
+      padding: 8px 12px;
+      width: 280px;
+      border-radius: 25px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+    header button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 25px;
+      background: var(--secondary);
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    header button:hover { background: var(--primary); }
+
+    nav {
+      background: var(--dark);
+      color: white;
+      display: flex;
+      gap: 20px;
+      padding: 12px 20px;
+      justify-content: center;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    nav a:hover { background: var(--primary); color: #fff; }
+
+    .categories {
+      padding: 15px;
+      background: #fff;
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+    }
+    .categories button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .categories button:hover { background: var(--secondary); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .video-card, .book-card, .tutor-card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease-in-out;
+    }
+    .video-card:hover, .book-card:hover, .tutor-card:hover { transform: scale(1.02); }
+    .video-card iframe, .book-card iframe { width: 100%; height: 200px; }
+    .video-card p, .book-card p { padding: 12px; font-weight: 500; }
+
+    #shortsPage { display: none; background: #000; color: white; }
+    .video-container {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      flex-direction: column;
+    }
+    .video-container iframe { width: 100%; height: 100%; border: none; }
+    .actions { position: absolute; right: 20px; bottom: 100px; display: flex; flex-direction: column; gap: 15px; }
+    .actions button {
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      padding: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      color: white;
+      font-size: 20px;
+      transition: 0.3s;
+    }
+    .actions button:hover { background: var(--primary); }
+    .info {
+      position: absolute;
+      left: 20px;
+      bottom: 40px;
+      max-width: 70%;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    #classesPage, #booksPage, #tutoringPage { display: none; padding: 30px; }
+    .tutor-card h3 { margin: 0 0 10px; }
+    .tutor-card p { margin: 0 0 10px; font-weight: bold; }
+
+    #assistant {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 320px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #assistant-header { background: var(--primary); color: white; padding: 12px; cursor: pointer; font-weight: bold; }
+    #assistant-messages { padding: 12px; height: 220px; overflow-y: auto; font-size: 14px; }
+    #assistant input { border: none; padding: 12px; width: 100%; border-top: 1px solid #ddd; font-size: 14px; }
+    #chat-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      transition: 0.3s;
+    }
+    #chat-btn:hover { background: var(--primary); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>TikLearn</h1>
+  <div>
+    <input type="text" id="searchInput" placeholder="Search learning videos...">
+    <button id="searchBtn">Search</button>
+  </div>
+</header>
+
+<nav>
+  <a onclick="showPage('homePage')">Home</a>
+  <a onclick="showPage('shortsPage')">Shorts</a>
+  <a onclick="showPage('classesPage')">Classes</a>
+  <a onclick="showPage('booksPage')">FreeBooks</a>
+  <a onclick="showPage('tutoringPage')">Tutoring</a>
+</nav>
+
+<!-- Pages -->
+<div id="homePage">
+  <div class="categories">
+    <button onclick="searchVideos('Science')">Science</button>
+    <button onclick="searchVideos('Technology')">Technology</button>
+    <button onclick="searchVideos('Business')">Business</button>
+    <button onclick="searchVideos('Languages')">Languages</button>
+    <button onclick="searchVideos('Math')">Math</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="shortsPage"><div id="feed"></div></div>
+
+<!-- Classes Page -->
+<div id="classesPage">
+  <h2>Available Live Classes</h2>
+
+  <!-- Professional Tutor Submission Form -->
+  <section style="margin-bottom:30px; max-width:700px; background:#fff; padding:20px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);">
+    <h3 style="margin-bottom:15px; color:var(--primary); font-weight:bold;">📝 Add a New Tutor/Class</h3>
+    
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <input type="text" id="tutorName" placeholder="Tutor Name" style="padding:12px; border-radius:10px; border:1px solid #ccc; font-size:14px; outline:none;">
+      <input type="text" id="tutorSubject" placeholder="Subject" style="padding:12px; border-radius:10px; border:1px solid #ccc; font-size:14px; outline:none;">
+      <input type="number" id="tutorPrice" placeholder="Price ($)" style="padding:12px; border-radius:10px; border:1px solid #ccc; font-size:14px; outline:none;">
+      <input type="text" id="tutorLink" placeholder="Live Class Link (Jitsi)" style="padding:12px; border-radius:10px; border:1px solid #ccc; font-size:14px; outline:none;">
+      <button id="addTutorBtn" style="padding:12px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:bold; cursor:pointer; transition:0.3s;">
+        Add Tutor
+      </button>
+    </div>
+  </section>
+
+  <!-- Tutors List -->
+  <div id="tutorsList"></div>
+
+  <h3>Students Joined:</h3>
+  <ul id="joinedList"></ul>
+</div>
+
+<div id="booksPage">
+  <h2>📚 FreeBooks – Explore Free Online Libraries</h2>
+  <div class="grid">
+    <div class="book-card"><a href="https://www.gutenberg.org/" target="_blank"><p>Project Gutenberg</p></a></div>
+    <div class="book-card"><a href="https://openlibrary.org/" target="_blank"><p>Open Library</p></a></div>
+    <div class="book-card"><a href="https://manybooks.net/" target="_blank"><p>ManyBooks</p></a></div>
+    <div class="book-card"><a href="https://standardebooks.org/" target="_blank"><p>Standard Ebooks</p></a></div>
+    <div class="book-card"><a href="https://openstax.org/" target="_blank"><p>OpenStax</p></a></div>
+    <div class="book-card"><a href="https://bookboon.com/" target="_blank"><p>Bookboon</p></a></div>
+    <div class="book-card"><a href="https://www.free-ebooks.net/" target="_blank"><p>Free-Ebooks.net</p></a></div>
+    <div class="book-card"><a href="https://pdfdrive.com/" target="_blank"><p>PDF Drive</p></a></div>
+    <div class="book-card"><a href="https://oercommons.org/" target="_blank"><p>OER Commons</p></a></div>
+    <div class="book-card"><a href="https://www.google.com/books" target="_blank"><p>Google Books (Free)</p></a></div>
+    <div class="book-card"><a href="https://library.lol/" target="_blank"><p>Library Genesis</p></a></div>
+   <div class="book-card"><a href="https://www.gutenberg.org/" target="_blank"><p>Project Gutenberg</p></a></div>
+    <div class="book-card"><a href="https://openlibrary.org/" target="_blank"><p>Open Library</p></a></div>
+    <div class="book-card"><a href="https://manybooks.net/" target="_blank"><p>ManyBooks</p></a></div>
+    <div class="book-card"><a href="https://standardebooks.org/" target="_blank"><p>Standard Ebooks</p></a></div>
+    <div class="book-card"><a href="https://openstax.org/" target="_blank"><p>OpenStax (College Textbooks)</p></a></div>
+    <div class="book-card"><a href="https://bookboon.com/" target="_blank"><p>Bookboon (Business & Skills)</p></a></div>
+    <div class="book-card"><a href="https://www.free-ebooks.net/" target="_blank"><p>Free-Ebooks.net</p></a></div>
+    <div class="book-card"><a href="https://pdfdrive.com/" target="_blank"><p>PDF Drive</p></a></div>
+    <div class="book-card"><a href="https://oercommons.org/" target="_blank"><p>OER Commons</p></a></div>
+    <div class="book-card"><a href="https://www.google.com/books" target="_blank"><p>Google Books (Free)</p></a></div>
+    <div class="book-card"><a href="https://library.lol/" target="_blank"><p>Library Genesis</p></a></div>
+
+    <!-- Programming & Hacking -->
+    <div class="book-card"><a href="https://www.geeksforgeeks.org/" target="_blank"><p>GeeksForGeeks (Programming)</p></a></div>
+    <div class="book-card"><a href="https://www.codecademy.com/resources/ebooks" target="_blank"><p>Codecademy Free Ebooks</p></a></div>
+    <div class="book-card"><a href="https://hackr.io/tutorials/learn-hacking" target="_blank"><p>Hackr.io (Ethical Hacking Guides)</p></a></div>
+    <div class="book-card"><a href="https://exploit-db.com/" target="_blank"><p>Exploit-DB (Hacking Research)</p></a></div>
+
+    <!-- Forex & Business -->
+    <div class="book-card"><a href="https://www.babypips.com/" target="_blank"><p>BabyPips (Forex Education)</p></a></div>
+    <div class="book-card"><a href="https://www.forexfactory.com/" target="_blank"><p>Forex Factory</p></a></div>
+    <div class="book-card"><a href="https://www.shopify.com/learn" target="_blank"><p>Shopify Learn (Dropshipping)</p></a></div>
+    <div class="book-card"><a href="https://oberlo.com/blog" target="_blank"><p>Oberlo Blog (Ecommerce)</p></a></div>
+
+    <!-- Education & Past Papers -->
+    <div class="book-card"><a href="https://pastpapers.co.za/" target="_blank"><p>SA Past Exam Papers</p></a></div>
+    <div class="book-card"><a href="https://zimsec.co.zw/exam-papers/" target="_blank"><p>ZIMSEC Past Papers</p></a></div>
+    <div class="book-card"><a href="https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-upper-secondary/cambridge-igcse/past-papers/" target="_blank"><p>Cambridge IGCSE Past Papers</p></a></div>
+    <div class="book-card"><a href="https://www.khanacademy.org/" target="_blank"><p>Khan Academy (Free Courses)</p></a></div>
+    <div class="book-card"><a href="https://ocw.mit.edu/" target="_blank"><p>MIT OpenCourseWare</p></a></div>
+    <div class="book-card"><a href="https://www.coursera.org/courses?query=free" target="_blank"><p>Coursera Free Courses</p></a></div>
+    <div class="book-card"><a href="https://www.edx.org/learn/free-courses" target="_blank"><p>edX Free Courses</p></a></div>
+    <div class="book-card"><a href="https://www.futurelearn.com/courses/collections/free-online-courses" target="_blank"><p>FutureLearn Free Courses</p></a></div>
+ 
+</div>
+</div>
+
+<div id="tutoringPage">
+  <h2>👩‍🏫 Online Tutoring</h2>
+
+  <section style="margin:20px 0;">
+    <h3>📹 Join a Live Class</h3>
+    <iframe
+      id="classRoom"
+      src="https://meet.jit.si/TikLearnTutoringRoom"
+      style="width:100%; height:500px; border:0; border-radius:12px; display:none;"
+      allow="camera; microphone; fullscreen; display-capture"
+      allowfullscreen>
+    </iframe>
+    <p id="classLockedMsg" style="color:red; font-size:14px; margin-top:5px;">
+      🔒 This class will unlock once you complete the payment.
+    </p>
+  </section>
+
+  <section style="margin:20px 0;">
+    <h3>📅 Book a Tutoring Session</h3>
+    <iframe
+      src="https://calendly.com/"
+      width="100%"
+      height="600"
+      frameborder="0"
+      style="border:0; border-radius:12px;"
+      allowfullscreen>
+    </iframe>
+    <p style="color:#666; font-size:14px; margin-top:5px;">
+      Replace the Calendly link with your own booking page.
+    </p>
+  </section>
+</div>
+
+<button id="chat-btn">💬</button>
+<div id="assistant">
+  <div id="assistant-header">AI Assistant</div>
+  <div id="assistant-messages"></div>
+  <input type="text" id="assistant-input" placeholder="Ask me anything...">
+</div>
+
+<!-- PAYPAL SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AYiHnhYVXVKnd8tXyyIu_iEAASnd-O57KtRHk9n_3pkf_-GQxmNv7sgICyjf5ZNhtVZW_qaHgWZ15Rvg&currency=USD"></script>
+
+<script>
+const apiKey = "AIzaSyArwwqnGG71JwkoHgOs3weLBhvhyTvo788";
+
+function showPage(page) {
+  ['homePage','shortsPage','classesPage','booksPage','tutoringPage'].forEach(p=>document.getElementById(p).style.display='none');
+  document.getElementById(page).style.display='block';
+}
+
+// Search Videos
+async function searchVideos(query) {
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=6&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  data.items.forEach(item => {
+    const videoId = item.id.videoId;
+    const title = item.snippet.title;
+    grid.innerHTML += `<div class="video-card"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe><p>${title}</p></div>`;
+  });
+}
+
+// Load Shorts Feed
+async function loadShortsFeed(query="education") {
+  const feed = document.getElementById("feed"); feed.innerHTML = "";
+  const urlVideos = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=5&key=${apiKey}`;
+  const dataVideos = await (await fetch(urlVideos)).json();
+  [...dataVideos.items].forEach(item => {
+    const videoId = item.id.videoId;
+    const title = item.snippet.title;
+    const channel = item.snippet.channelTitle;
+    feed.innerHTML += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}?controls=0" allowfullscreen></iframe><div class="actions"><button onclick="likeVideo('${videoId}')">👍</button><button>💬</button><button>↗️</button></div><div class="info"><h3>${title}</h3><p>@${channel}</p></div></div>`;
+  });
+}
+
+document.getElementById("searchBtn").addEventListener("click", ()=>{ const query = document.getElementById("searchInput").value; if(query.trim()!=="") searchVideos(query); });
+function likeVideo(videoId){alert("Liked video "+videoId);}
+
+// --- TUTOR AND PAYPAL ---
+const tutorsKey = 'tutorsList';
+const joinedKey = 'joinedTutors';
+
+// Add new tutor
+document.getElementById('addTutorBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('tutorName').value.trim();
+  const subject = document.getElementById('tutorSubject').value.trim();
+  const price = document.getElementById('tutorPrice').value.trim();
+  const link = document.getElementById('tutorLink').value.trim();
+  if(!name || !subject || !price || !link){ alert("Fill all fields!"); return; }
+
+  let tutors = JSON.parse(localStorage.getItem(tutorsKey) || '[]');
+  tutors.push({name, subject, price, link});
+  localStorage.setItem(tutorsKey, JSON.stringify(tutors));
+  renderTutors();
+
+  document.getElementById('tutorName').value = '';
+  document.getElementById('tutorSubject').value = '';
+  document.getElementById('tutorPrice').value = '';
+  document.getElementById('tutorLink').value = '';
+});
+
+// Render tutors
+function renderTutors(){
+  const list = document.getElementById('tutorsList');
+  list.innerHTML = '';
+  let tutors = JSON.parse(localStorage.getItem(tutorsKey) || '[]');
+  tutors.forEach((tutor,i)=>{
+    const card = document.createElement('div');
+    card.className = 'tutor-card'; 
+    card.style.padding = '15px'; 
+    card.style.marginBottom = '15px';
+    card.style.borderRadius = '12px';
+    card.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+    card.style.background = '#fff';
+    card.innerHTML = `<h3>${tutor.name} - ${tutor.subject}</h3><p>Price: $${tutor.price}</p><div id="paypal-${i}"></div>`;
+    list.appendChild(card);
+
+    paypal.Buttons({
+      createOrder: (data, actions) => actions.order.create({
+        purchase_units:[{description:`Tutoring with ${tutor.name}`, amount:{value:tutor.price}}]
+      }),
+      onApprove: (data, actions) => actions.order.capture().then(details => {
+        alert(`Payment completed for ${tutor.name} by ${details.payer.name.given_name}`);
+        document.getElementById('classRoom').src = tutor.link;
+        document.getElementById('classRoom').style.display = 'block';
+        document.getElementById('classLockedMsg').style.display = 'none';
+        let joined = JSON.parse(localStorage.getItem(joinedKey) || '[]');
+        joined.push({tutor:tutor.name, name:details.payer.name.given_name});
+        localStorage.setItem(joinedKey, JSON.stringify(joined));
+        updateJoinedList();
+      })
+    }).render(`#paypal-${i}`);
+  });
+}
+
+function updateJoinedList(){
+  const list = document.getElementById('joinedList');
+  list.innerHTML = '';
+  let joined = JSON.parse(localStorage.getItem(joinedKey)||'[]');
+  joined.forEach(j=>list.innerHTML+=`<li>${j.name} - ${j.tutor}</li>`);
+}
+
+// Initial Load
+showPage('homePage');
+searchVideos('education');
+loadShortsFeed('education');
+renderTutors();
+updateJoinedList();
+</script>
+</body>
+</html>
