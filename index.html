@@ -26,10 +26,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    header h1 { margin: 0; font-size: 24px; font-weight: bold; }
-    header div { display: flex; align-items: center; gap: 8px; }
+    header h1 { 
+      margin: 0; 
+      font-size: 24px; 
+      font-weight: bold; 
+      flex: 1;
+    }
+    header div { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      flex: 2;
+      justify-content: flex-end;
+    }
     header input {
       padding: 8px 12px;
       width: 280px;
@@ -37,6 +49,7 @@
       border: none;
       outline: none;
       font-size: 14px;
+      max-width: 100%;
     }
     header button {
       padding: 8px 16px;
@@ -46,6 +59,7 @@
       color: white;
       cursor: pointer;
       font-size: 14px;
+      flex-shrink: 0;
     }
     header button:hover { background: var(--primary); }
 
@@ -53,7 +67,8 @@
       background: var(--dark);
       color: white;
       display: flex;
-      gap: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
       padding: 12px 20px;
       justify-content: center;
     }
@@ -72,8 +87,9 @@
       padding: 15px;
       background: #fff;
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
-      overflow-x: auto;
+      justify-content: center;
     }
     .categories button {
       background: var(--primary);
@@ -88,7 +104,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
       padding: 20px;
     }
@@ -170,10 +186,46 @@
       transition: 0.3s;
     }
     #chat-btn:hover { background: var(--primary); }
+
+    /* ✅ RESPONSIVE FIXES */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+      header div {
+        justify-content: center;
+        width: 100%;
+      }
+      header input {
+        width: 80%;
+      }
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        padding: 10px;
+      }
+      .video-card iframe, .book-card iframe {
+        height: 180px;
+      }
+      #classesPage, #booksPage, #tutoringPage {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 20px; }
+      header button { padding: 6px 10px; font-size: 12px; }
+      .categories button { padding: 6px 12px; font-size: 13px; }
+      .video-card p, .book-card p { font-size: 13px; }
+      #assistant { width: 90%; right: 5%; bottom: 10px; }
+      #chat-btn { right: 15px; bottom: 15px; width: 50px; height: 50px; }
+    }
   </style>
   
 </head>
 <body>
+ 
 
 <header>
   <h1>TikLearn</h1>
@@ -436,5 +488,3 @@ updateJoinedList();
 </script>
 </body>
 </html>
-
-
